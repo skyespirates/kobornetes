@@ -1,0 +1,122 @@
+kubectl version
+
+kubectl run
+kubectl create
+kubectl apply
+
+kubectl run <pod-name> --image <source-image>
+contoh: kubectl run my-nginx --image nginx
+
+kubectl get pods
+kubectl get all
+
+kubectl config current-context
+kubectl config get-contexts
+kubectl config use-context <context-name>
+kubectl config delete-context <context-name>
+
+kubectl create deployment my-nginx --image nginx
+
+what happen during "kubectl create deployment"
+1. kubernetes receive deployment request and insert it to the database
+2. scheduler see this request and then create replica set
+3. when replica set is created, its trigger pod creation
+
+here is the flow
+Deployment -> ReplicaSet -> Pod
+
+# cleaning up resources
+kubectl delete pod my-nginx
+kubectl delete deployment my-nginx
+
+# create apache deployment
+kubectl create deployment my-apache --image httpd
+
+# scaling up deployment with increase replica
+kubectl scale deploy/my-apache --replicas 2
+
+# inspecting kubernetes resources
+kubectl get deploy/my-apache -o wide
+kubectl get deploy/my-apache -o yaml
+
+kubectl get <resource-type>/<resource-name> -o [wide|yaml]
+
+# using describe
+kubectl describe deploy my-apache
+
+# watching event in k8s
+kubectl get pods -w
+kubectl get events --watch-only
+
+# container logs in k8s
+
+
+# k8s service types
+1. ClusterIP -> only accessible inside the cluster, you cant access it from outsie the cluster
+2. NodePort
+3. LoadBalancer
+4. ExternalName
+
+> kubectl get pods -w		// watching all event in pods
+> kubectl create deployment httpenv --image=bretfisher/httpenv		// create deployment
+> kubectl scale deploy/httpenv --replicas=5	// scale deployment up to 5 replicas
+> kubectl expose deploy/httpenv --port=8888	// expose the deployment on port 8888, --type option doesnt set so it must be ClusterIP
+when running expose to a deployment, k8s will create an IP address (clusterIP) for that cluster
+# kubectl expose command has options --type=[ClusterIP|NodePort|LoadBalancer], if you ignore this options, by default it set to be type ClusterIP
+# you can create different type of service by changing it with other type
+
+## IMPORTANT!!!
+# Unable to connect to the server: EOF -> resolve by restart docker desktop
+# or you can try to reset k8s cluster from docker desktop at setting tab k8s
+
+
+# curl the clusterIP service
+> kubectl run temp-shell --rm -it --image=bretfisher/netshoot -- bash	// automatically remove this pod after shutdown
+> kubectl run tmp-shell --rm -it --image bretfisher/netshoot -- sh	// command to run in powershell, alternatively using sh
+
+# service name that have created become part of DNS name, hostname actually
+
+# create NodePort service
+> kubectl expose deploy/httpenv --port=8888 --name=httpenv-np --type=NodePort	// this will create another port for this deployment in order to be accessible from outside the cluster (HOST)
+# it will return 8888:31063, port on the left side is inside cluster, and right side is port which node exposed to outside world
+# you can access right side port from your HOST without go inside the cluster first
+
+# this is port of NodePort service  8888:30484/TCP, to forward this port so it can be accessed from host, just reverse it in kubectl port-forward command
+> kubectl port-forward svc/<service-name> 30484:8888	// now you can access port 30484 from your host [Docker Desktop only]
+> kubectl port-forward svc/<your-service-name> <node-port>:<cluster-port> -n <namespace>	// to access nodeport using docker desktop
+
+# create LoadBalancer service
+> kubectl expose deploy/httpenv --port=8888 --name=httpenv-lb --type=LoadBalancer // this will create load balancer service
+
+# service k8s is build like stacks, where ClusterIP as it base and then NodePort and LoadBalancer at the top
+# so ClusterIP can be independent, but when you create NodePort service it will create ClusterIP and then add NodePort on top of that
+# similary for LoadBalancer, ClusterIP>NodePort>LoadBalancer
+# NodePort and LoadBalancer cannot be independent [my current understanding]
+
+# k8s DNS services
+# <hostname>.<namespace>.svc.cluster.local	// this is the DNS format only inside the cluster
+# it says that hostname usually service name
+
+# YAML generator
+[k8s command] --dry-run=client -o yaml
+# example kubectl create deployment test --image nginx --dry-run=client -o yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
